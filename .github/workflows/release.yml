@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
+          echo "RELEASE_VERSION=${TAG#v}" >> "$GITHUB_ENV"
+      - name: Run checks
+        run: ./scripts/test.sh
+      - name: Build app
+        env:
+          RELEASE_BUILD_NUMBER: ${{ github.run_number }}
+        run: ./scripts/build-app.sh
+      - name: Verify and package
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          app="dist/Herdr Island.app"
+          test "$(lipo -archs "$app/Contents/MacOS/DynamicHerdr")" = "$ARCH"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          mkdir -p release
+          ditto -c -k --sequesterRsrc --keepParent "$app" "release/Herdr-Island-${RELEASE_VERSION}-${ARCH}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Herdr-Island-${{ matrix.arch }}
+          path: release/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Herdr-Island-*
+          merge-multiple: true
+          path: release
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        working-directory: release
+        run: |
+          sha256sum *.zip > SHA256SUMS.txt
+          cat > notes.md <<'NOTES'
+          Download **arm64** for Apple Silicon or **x86_64** for Intel Macs.
+          Unzip and move **Herdr Island.app** to Applications.
+
+          Requires macOS 14+ and a local Herdr installation supporting `herdr terminal attach`.
+          Swift and Xcode are not required to run the app.
+
+          These builds are ad-hoc signed, not Apple Developer ID signed or notarized. macOS may block first launch. See the README for installation guidance.
+          SHA256SUMS.txt contains checksums for both downloads.
+          NOTES
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --verify-tag --draft --title "Herdr Island $TAG" --notes-file notes.md
+          fi
+          gh release upload "$TAG" ./*.zip SHA256SUMS.txt --clobber
+          gh release edit "$TAG" --draft=false

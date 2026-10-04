@@ -2,7 +2,15 @@
 
 A small native terminal at the top of your display. Herdr agents surface when they need input or finish a run. Open the island to interact directly with the agent’s terminal.
 
-## Run
+## Download
+
+Download the latest app from [GitHub Releases](https://github.com/nyxdotlumen/herdr-island/releases/latest): choose **arm64** for Apple Silicon or **x86_64** for Intel. Unzip and move **Herdr Island.app** to Applications.
+
+Requires macOS 14+ and a local Herdr installation supporting `herdr terminal attach`. You do not need Swift or Xcode to run a downloaded build. Release downloads require repository access while this repository is private.
+
+Builds are ad-hoc signed, not Developer ID signed or notarized. If macOS blocks the app, follow Apple's [instructions for opening an app from an unidentified developer](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac), only if you trust this download. Each release includes SHA-256 checksums.
+
+## Build from source
 
 Requires macOS 14+, Apple Command Line Tools with Swift 6+, and a local Herdr installation that supports `herdr terminal attach` (verified with the installed protocol 22 client/server).
 
@@ -89,7 +97,7 @@ Current scope: one local Herdr server. Remote SSH and aggregation across servers
 ./scripts/build-app.sh
 ```
 
-SwiftTerm 1.20.0 is pinned in SwiftPM. The build packages its resources and license, then ad-hoc signs the app. The app can be moved to Applications; set launch at login after moving it. It is a local build, not a notarized distribution.
+SwiftTerm 1.20.0 is pinned in SwiftPM. The build packages its resources and license, then ad-hoc signs the app. The app can be moved to Applications; set launch at login after moving it. Both local and CI builds use ad-hoc signing; neither is notarized.
 
 Checks cover queue lifecycle, identity validation, physical shortcut routing, native terminal key passthrough, fragmented terminal frames, raw byte encoding, and monitor selection (including displays above/left, spanning windows, and disconnected displays). See [verification notes](docs/verification.md) for the isolated native terminal checks.
 
@@ -107,3 +115,7 @@ Render the actual native demo views:
 Herdr references: [terminal session interface](https://herdr.dev/docs/cli-reference/#direct-terminal-attach), [socket API](https://herdr.dev/docs/socket-api/).
 
 Home includes ordinary shells and panes running other commands. Starting or exiting an agent inside an open pane updates its status without replacing its terminal attachment. Only detected agents generate attention notifications.
+
+## Publishing a release
+
+Push a version tag such as `v0.1.0` to trigger the Release workflow. It tests and builds on Apple Silicon and Intel runners, sets the app version from the tag, verifies the signatures and architectures, and publishes two ZIPs plus `SHA256SUMS.txt` to GitHub Releases. The release stays in draft until both assets are uploaded. Tags must use `vMAJOR.MINOR.PATCH`.
