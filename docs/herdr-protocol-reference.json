@@ -1,0 +1,304 @@
+{
+  "protocol": 22,
+  "schemas": {
+    "request": {
+      "AgentPromptParams": {
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "wait": {
+            "anyOf": [
+              {
+                "$ref": "#/schemas/request/$defs/AgentPromptWaitOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "target",
+          "text"
+        ],
+        "type": "object"
+      },
+      "AgentReadParams": {
+        "properties": {
+          "format": {
+            "$ref": "#/schemas/request/$defs/ReadFormat",
+            "default": "text"
+          },
+          "lines": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source": {
+            "$ref": "#/schemas/request/$defs/ReadSource"
+          },
+          "strip_ansi": {
+            "default": true,
+            "type": "boolean"
+          },
+          "target": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "source"
+        ],
+        "type": "object"
+      },
+      "AgentSendKeysParams": {
+        "properties": {
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "target": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "keys"
+        ],
+        "type": "object"
+      },
+      "AgentStatus": {
+        "enum": [
+          "idle",
+          "working",
+          "blocked",
+          "done",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "AgentTarget": {
+        "properties": {
+          "target": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "target"
+        ],
+        "type": "object"
+      }
+    },
+    "success_response": {
+      "AgentInfo": {
+        "properties": {
+          "agent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "agent_session": {
+            "anyOf": [
+              {
+                "$ref": "#/schemas/success_response/$defs/AgentSessionInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "agent_status": {
+            "$ref": "#/schemas/success_response/$defs/AgentStatus"
+          },
+          "cwd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_agent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "focused": {
+            "type": "boolean"
+          },
+          "foreground_cwd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interactive_ready": {
+            "type": "boolean"
+          },
+          "launch_pending": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pane_id": {
+            "type": "string"
+          },
+          "revision": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "screen_detection_skipped": {
+            "type": "boolean"
+          },
+          "state_change_seq": {
+            "default": 0,
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "state_labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "tab_id": {
+            "type": "string"
+          },
+          "terminal_id": {
+            "type": "string"
+          },
+          "terminal_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "terminal_title_stripped": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tokens": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 32,
+            "propertyNames": {
+              "pattern": "^[A-Za-z0-9_-]{1,32}$"
+            },
+            "type": "object"
+          },
+          "workspace_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "terminal_id",
+          "agent_status",
+          "workspace_id",
+          "tab_id",
+          "pane_id",
+          "focused",
+          "revision"
+        ],
+        "type": "object"
+      },
+      "AgentSessionInfo": {
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/schemas/success_response/$defs/AgentSessionRefKind"
+          },
+          "source": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "agent",
+          "kind",
+          "value"
+        ],
+        "type": "object"
+      },
+      "AgentStatus": {
+        "enum": [
+          "idle",
+          "working",
+          "blocked",
+          "done",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "PaneReadResult": {
+        "properties": {
+          "format": {
+            "$ref": "#/schemas/success_response/$defs/ReadFormat"
+          },
+          "pane_id": {
+            "type": "string"
+          },
+          "revision": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "source": {
+            "$ref": "#/schemas/success_response/$defs/ReadSource"
+          },
+          "tab_id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "workspace_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pane_id",
+          "workspace_id",
+          "tab_id",
+          "source",
+          "format",
+          "text",
+          "revision",
+          "truncated"
+        ],
+        "type": "object"
+      }
+    }
+  }
+}
